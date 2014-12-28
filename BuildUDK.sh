@@ -1,32 +1,35 @@
 #!/bin/bash
+pathToUdk=/home/estude/Documents/UefiApp/Source/UDK2014.SP1
 #prepare UDK
-rm -fr ~/src/edk2/Build
-make -C ~/src/edk2/BaseTools
-cd ~/src/edk2
-export EDK_TOOLS_PATH=$HOME/src/edk2/BaseTools
+rm -fr $pathToUdk/Build
+make -C $pathToUdk/BaseTools
+cd $pathToUdk
+export EDK_TOOLS_PATH=$pathToUdk/BaseTools
 . edksetup.sh BaseTools
 
-
 #ovmf build
-cd ~/src/edk2/OvmfPkg
+#Pre-requisitos
+sudo apt-get install build-essential uuid-dev texinfo bison flex libgmp3-dev libmpfr-dev subversion nasm ials
+
+#Compilando ovmf
+cd $pathToUdk/OvmfPkg
 ./build.sh -a X64 -b DEBUG -t GCC46
 
 #build MdeModulePkg
-cd ~/src/edk2
-export EDK_TOOLS_PATH=$HOME/src/edk2/BaseTools
+cd $pathToUdk/edk2
+export EDK_TOOLS_PATH=$pathToUdk/BaseTools
 . edksetup.sh BaseTools
 build -p MdeModulePkg/MdeModulePkg.dsc -a X64 -t GCC46 -m MdeModulePkg/Application/HelloWorld/HelloWorld.inf
 
 #prepare vm
-rm -fr ~/run-ovmf
-mkdir ~/run-ovmf
-mkdir ~/run-ovmf/hda-contents
-cd ~/run-ovmf
-cp ~/src/edk2/Build/OvmfX64/DEBUG_GCC46/FV/OVMF.fd bios.bin
+rm -fr $pathToUdk/run-ovmf
+mkdir $pathToUdk/run-ovmf
+mkdir $pathToUdk/run-ovmf/hda-contents
+cd $pathToUdk/run-ovmf
+cp $pathToUdk/Build/OvmfX64/DEBUG_GCC46/FV/OVMF.fd bios.bin
 
 #copy files to vm
-cp ~/src/edk2/Build/MdeModule/DEBUG_GCC46/X64/HelloWorld.efi ~/run-ovmf/hda-contents/HelloWorld.efi
-
+cp $pathToUdk/Build/MdeModule/DEBUG_GCC46/X64/HelloWorld.efi $pathToUdk/run-ovmf/hda-contents/HelloWorld.efi
 
 #run qemu
 qemu-system-x86_64 -L . -bios bios.bin -serial file:serial.log -hda fat:hda-contents
