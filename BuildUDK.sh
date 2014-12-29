@@ -1,5 +1,18 @@
 #!/bin/bash
-pathToUdk=/home/estude/Documents/UefiApp/Source/UDK2014.SP1
+pastaDocumentos=Documentos
+pathToUdk=$HOME/$pastaDocumentos/UefiApp/Source/UDK2014.SP1
+
+#Criando pastas
+mkdir $HOME/$pastaDocumentos/UefiApp
+mkdir $HOME/$pastaDocumentos/UefiApp/Source/
+cd $HOME/$pastaDocumentos/UefiApp/Source/
+
+#Pre-requisitos
+sudo apt-get install build-essential uuid-dev texinfo bison flex libgmp3-dev libmpfr-dev subversion nasm iasl qemu
+
+#Baixando codigo
+svn checkout https://svn.code.sf.net/p/edk2/code/branches/UDK2014.SP1
+
 #prepare UDK
 rm -fr $pathToUdk/Build
 make -C $pathToUdk/BaseTools
@@ -8,10 +21,6 @@ export EDK_TOOLS_PATH=$pathToUdk/BaseTools
 . edksetup.sh BaseTools
 
 #ovmf build
-#Pre-requisitos
-sudo apt-get install build-essential uuid-dev texinfo bison flex libgmp3-dev libmpfr-dev subversion nasm ials
-
-#Compilando ovmf
 cd $pathToUdk/OvmfPkg
 ./build.sh -a X64 -b DEBUG -t GCC46
 
@@ -35,4 +44,6 @@ cp $pathToUdk/Build/MdeModule/DEBUG_GCC46/X64/HelloWorld.efi $pathToUdk/run-ovmf
 qemu-system-x86_64 -L . -bios bios.bin -serial file:serial.log -hda fat:hda-contents
 
 #change gcc
+#apt-get install gcc-4.6
+#rm /usr/bin/gcc
 #ln -s /usr/bin/gcc-4.6 /usr/bin/gcc
